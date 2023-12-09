@@ -1,10 +1,8 @@
 import React, { Fragment } from 'react'
 import { BrowserRouter as Router, Routes, Route} from 'react-router-dom'
 import {routes} from './routes'
-import { useEffect } from 'react'
 import DefaultComponent from './components/DefaultComponent/DefaultComponent'
-import axios from 'axios'
-import { useQuery } from '@tanstack/react-query'
+
 
 export function App() {
 
@@ -13,14 +11,14 @@ export function App() {
     //   fetchApi()
     // },[])
 
-    const fetchApi = async () => {
-      const res = await axios.get(`${process.env.REACT_APP_API_URL}/products/getAllProducts`)
-      return res.data
-    }
+    // const fetchApi = async () => {
+    //   const res = await axios.get(`${process.env.REACT_APP_API_URL}/products/getAllProducts`)
+    //   return res.data
+    // }
   
-    const query = useQuery({ queryKey: ['products'], queryFn: fetchApi })
+    // const query = useQuery({ queryKey: ['products'], queryFn: fetchApi })
 
-    console.log('query', query)
+    // console.log('query', query)
 
   return (
     <div>
