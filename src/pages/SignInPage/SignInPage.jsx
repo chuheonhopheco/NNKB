@@ -6,12 +6,24 @@ import { Image } from 'antd'
 import ImageLogo from '../../assets/images/Logo.png' 
 import {EyeFilled, EyeInvisibleFilled} from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
+import { useMutation } from '@tanstack/react-query'
+import * as UserService from '../../services/UserService'
+import { useMutationHook } from '../../hooks/useMutationHook'
+
 
 const SignInPage = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
   const navigate =useNavigate()
+
+  const mutation = useMutationHook(
+    data => UserService.loginUser(data)
+  )
+  const {data, isLoading} = mutation
+
+console.log ('mutation', mutation)
+
   const handleNavigateSignUp = () => {
     navigate('/sign-up')
   }
@@ -22,6 +34,10 @@ const SignInPage = () => {
     setPassword(value)
   }
   const handleSignIn = () => {
+    mutation.mutate({
+      email, 
+      password
+    })
     console.log('sign-in', email, password)
   }
   const [isShowPassword, setIsShowPassword] = useState(false)
@@ -52,6 +68,7 @@ const SignInPage = () => {
             </span>
           </div>
           <InputForm placeholder="Password" type={isShowPassword ? "text" : "Password"} value={password} onChange = {handleOnchangePassword}/>
+          {data?.status === 'ERR' && <span style={{color: 'red'}}>{data?.message}</span>}
           <ButtonComponent
             disabled={!email.length || !password.length }
             onClick={handleSignIn}
