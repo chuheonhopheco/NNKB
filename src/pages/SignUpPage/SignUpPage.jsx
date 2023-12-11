@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { WrapperContainerLeft, WrapperContainerRight, WrapperTextLight } from './style'
 import InputForm from '../../components/InputForm/InputForm'
 import ButtonComponent from '../../components/ButtonComponent/ButtonComponent'
@@ -6,6 +6,10 @@ import { Image } from 'antd'
 import ImageLogo from '../../assets/images/Logo.png' 
 import {EyeFilled, EyeInvisibleFilled} from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
+import * as UserService from '../../services/UserService'
+import { useMutationHooks } from '../../hooks/useMutationHook'
+//import Loading from '../../components/LoadingComponent/Loading'
+import * as message from '../../components/Message/Message'
 
 const SignUpPage = () => {
   const [isShowPassword, setIsShowPassword] = useState(false)
@@ -18,6 +22,21 @@ const SignUpPage = () => {
   const handleNavigateLogin = () => {
     navigate('/sign-in')
   }
+  const mutation = useMutationHooks(
+    data => UserService.signupUser(data)
+  )
+
+  const {data, isLoading, isSuccess, isError} = mutation
+
+  useEffect(() => {
+    if(isSuccess){
+      message.success()
+      handleNavigateLogin()
+    }else if(isError){
+      message.error()
+    }
+  }, [isSuccess, isError])
+
   const handleOnchangeEmail = (value) => {
     setEmail(value)
   }
@@ -28,6 +47,11 @@ const SignUpPage = () => {
     setconfirmPassword(value)
   }
   const handleSignUp = () => {
+    mutation.mutate({
+      email,
+      password,
+      confirmPassword
+    })
     console.log('sign-up', email, password, confirmPassword)
   }
 
@@ -78,6 +102,7 @@ const SignUpPage = () => {
             </span>
           </div>
           <InputForm style={{marginBottom: '10px'}} placeholder="Confirm Password" type={isShowConfirmPassword ? "text" : "Password"} value={confirmPassword} onChange = {handleOnchangeConfirmPassword}/>
+          {data?.status === 'ERR' && <span style={{color: 'red'}}>{data?.message}</span>}
           <ButtonComponent
             disabled={!email.length || !password.length || !confirmPassword.length }
             onClick={handleSignUp}

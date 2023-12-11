@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { WrapperContainerLeft, WrapperContainerRight, WrapperTextLight } from './style'
 import InputForm from '../../components/InputForm/InputForm'
 import ButtonComponent from '../../components/ButtonComponent/ButtonComponent'
@@ -6,24 +6,47 @@ import { Image } from 'antd'
 import ImageLogo from '../../assets/images/Logo.png' 
 import {EyeFilled, EyeInvisibleFilled} from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
-import { useMutation } from '@tanstack/react-query'
 import * as UserService from '../../services/UserService'
-import { useMutationHook } from '../../hooks/useMutationHook'
-
+import { useMutationHooks } from '../../hooks/useMutationHook'
+//import Loading from '../../components/LoadingComponent/Loading'
+import * as message from '../../components/Message/Message'
+import { jwtDecode } from 'jwt-decode'
+import {useDispatch} from 'react-redux'
+import { updateUser } from '../../redux/slides/userSlide'
 
 const SignInPage = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-
   const navigate =useNavigate()
+  const dispatch = useDispatch()
 
-  const mutation = useMutationHook(
+  const mutation = useMutationHooks(
     data => UserService.loginUser(data)
   )
-  const {data, isLoading} = mutation
 
-console.log ('mutation', mutation)
+  const {data, isLoading, isSuccess, isError} = mutation
 
+  useEffect(() => {
+    if(isSuccess){
+      message.success() 
+      navigate('/')
+      console.log('data', data)
+      localStorage.setItem('access_token', JSON.stringify(data?.access_token))
+      if(data?.access_token){
+        const decoded = jwtDecode(data?.access_token)
+        if(decoded?.id){
+          handleGetOneUser(decoded?.id, data?.access_token)
+        }
+      }
+    }
+  }, [isSuccess])
+
+  const handleGetOneUser = async (id, token) => {
+    const res = await UserService.getOneUser(id, token)
+    dispatch(updateUser({...res?.data, access_token: token}))
+  }
+
+  console.log('mutation', mutation)
   const handleNavigateSignUp = () => {
     navigate('/sign-up')
   }
@@ -35,10 +58,9 @@ console.log ('mutation', mutation)
   }
   const handleSignIn = () => {
     mutation.mutate({
-      email, 
+      email,
       password
     })
-    console.log('sign-in', email, password)
   }
   const [isShowPassword, setIsShowPassword] = useState(false)
   return (
@@ -69,19 +91,21 @@ console.log ('mutation', mutation)
           </div>
           <InputForm placeholder="Password" type={isShowPassword ? "text" : "Password"} value={password} onChange = {handleOnchangePassword}/>
           {data?.status === 'ERR' && <span style={{color: 'red'}}>{data?.message}</span>}
-          <ButtonComponent
-            disabled={!email.length || !password.length }
-            onClick={handleSignIn}
-            size={40} 
-            styleButton={{
-                backgroundColor: 'rgba(140,40,48,255)', borderRadius: '6px',
-                height: '48px',
-                width: '100%',
-                margin: '26px 0 10px'
-            }}
-            styleTextButton = {{color: '#fff', fontSize:'15px', fontWeight: '500'}}
-            textButton = {'Đăng nhập'}          
-          ></ButtonComponent>
+          {/* <Loading isLoading={isLoading}> */}
+            <ButtonComponent
+              disabled={!email.length || !password.length }
+              onClick={handleSignIn}
+              size={40} 
+              styleButton={{
+                  backgroundColor: 'rgba(140,40,48,255)', borderRadius: '6px',
+                  height: '48px',
+                  width: '100%',
+                  margin: '26px 0 10px'
+              }}
+              styleTextButton = {{color: '#fff', fontSize:'15px', fontWeight: '500'}}
+              textButton = {'Đăng nhập'}          
+            ></ButtonComponent>
+           {/* </Loading> */}
           <WrapperTextLight>Quên mật khẩu</WrapperTextLight>
           <p>Chưa có tài khoản? <WrapperTextLight onClick={handleNavigateSignUp}>Tạo tài khoản</WrapperTextLight></p>
         </WrapperContainerLeft>
