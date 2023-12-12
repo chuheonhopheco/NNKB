@@ -33,7 +33,7 @@ const HeaderComponent = () => {
   const content = (
     <div>
       <WrapperContentPopup onClick={handleLogout}>Đăng Xuất</WrapperContentPopup>
-      <WrapperContentPopup>Thông tin người dùng</WrapperContentPopup>
+      <WrapperContentPopup onClick={() => navigate('/profile-user')}>Thông tin người dùng</WrapperContentPopup>
     </div>
   );
   return (

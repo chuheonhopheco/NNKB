@@ -10,7 +10,7 @@ import * as UserService from '../../services/UserService'
 import { useMutationHooks } from '../../hooks/useMutationHook'
 //import Loading from '../../components/LoadingComponent/Loading'
 import * as message from '../../components/Message/Message'
-import { jwtDecode } from 'jwt-decode'
+import { jwtDecode } from "jwt-decode";
 import {useDispatch} from 'react-redux'
 import { updateUser } from '../../redux/slides/userSlide'
 
