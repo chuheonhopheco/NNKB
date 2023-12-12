@@ -6,9 +6,17 @@ import banner2 from '../../assets/images/banner2.jpg'
 import banner3 from '../../assets/images/banner3.jpg'
 import SliderComponent from '../../components/SliderComponent/SliderComponent'
 import CardComponent from '../../components/CardComponent/CardComponent'
+import { useQuery } from '@tanstack/react-query'
+import * as ProductService from '../../services/ProductService'
 
 const HomePage = () => {
   const arr = ['Loa', 'Dia nhac', 'Day']
+  const fetchProductAll = async () => {
+    const res = await ProductService.getAllProduct()
+    console.log('res', res)
+  }
+  const {data} = useQuery(['products'], fetchProductAll)
+  console.log('data', data)
   return (
     <>
       <div style={{width: '1270px', margin:'0 auto'}}>  
