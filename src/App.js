@@ -5,13 +5,14 @@ import DefaultComponent from './components/DefaultComponent/DefaultComponent'
 import { isJsonString } from './utils'
 import { jwtDecode } from 'jwt-decode'
 import * as UserService from './services/UserService'
-import {useDispatch} from 'react-redux'
+import {useDispatch, useSelector} from 'react-redux'
 import { updateUser } from './redux/slides/userSlide'
 import axios from 'axios'
 
 
 export function App() {
   const dispatch = useDispatch()
+  const user = useSelector((state) => state.user)
 
   useEffect(() => {
     const {storageData, decoded} = handleDecoded()
@@ -62,6 +63,7 @@ export function App() {
         <Routes>
           {routes.map((route) => {
             const Page = route.page
+            const ischeckAuth = !route.isPrivate || user.isAdmin
             const Layout = route.isShowHeader ? DefaultComponent : Fragment
             return (
               <Route key={route} path={route.path} element={

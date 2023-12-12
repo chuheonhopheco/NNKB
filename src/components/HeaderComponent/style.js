@@ -29,6 +29,18 @@ export const WrapperHeaderText = styled.span`
     fontSize: '12px';
     white-space: nowrap;
 `
+
+export const WrapperTextHeader = styled.div`
+    font-size: 18px;
+    color: #fff;
+    font-weight: bold;
+    text-align: left;
+    &:hover {
+        font-size: 18px;
+        color: #fff;
+    }
+`
+
 export const WrapperContentPopup = styled.p`
     cursor: pointer;
     &:hover{

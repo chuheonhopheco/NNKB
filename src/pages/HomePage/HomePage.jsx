@@ -11,12 +11,13 @@ import * as ProductService from '../../services/ProductService'
 
 const HomePage = () => {
   const arr = ['Loa', 'Dia nhac', 'Day']
-  const fetchProductAll = async () => {
+  const fetchAllProduct = async () => {
     const res = await ProductService.getAllProduct()
     console.log('res', res)
+    return res
   }
-  const {data} = useQuery(['products'], fetchProductAll)
-  console.log('data', data)
+  const {isLoading, data: products} = useQuery({queryKey: 'product', queryFn: fetchAllProduct }, { retry: 3, retryDelay: 1000 })
+  console.log('data', products)
   return (
     <>
       <div style={{width: '1270px', margin:'0 auto'}}>  
@@ -32,13 +33,22 @@ const HomePage = () => {
         <div id='container' style={{backgroundColor: '#efefef', margin: '0 auto', height: '1000px', width: '100%'}}>
           <SliderComponent arrImages = {[banner1, banner2, banner3]}/>
           <WrapperProducts>
-            <CardComponent/>
-            <CardComponent/>
-            <CardComponent/>
-            <CardComponent/>
-            <CardComponent/>
-            <CardComponent/>
-            <CardComponent/>
+            {products?.data?.map((product) => {
+                return (
+                  <CardComponent 
+                    key={product._id} 
+                    countInStock={product.countInStock} 
+                    description={product.description} 
+                    image={product.image} 
+                    name={product.name} 
+                    price={product.price}
+                    rating={product.rating}
+                    type={product.type}
+                    selled={product.selled}
+                    discount={product.discount}
+                  />
+                )
+              })}
           </WrapperProducts>
               <div style={{width:'100%', display: 'flex', justifyContent: 'center', marginTop: '10px'}}>
                 <WrapperButtonMore textButton = "Xem thêm" type="outline" styleButton={{
