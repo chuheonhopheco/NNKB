@@ -16,7 +16,7 @@ const HomePage = () => {
     console.log('res', res)
     return res
   }
-  const {isLoading, data: products} = useQuery({queryKey: 'product', queryFn: fetchAllProduct }, { retry: 3, retryDelay: 1000 })
+  const { isLoading, data: products } = useQuery(['product'], { queryFn: fetchAllProduct, retry: 3, retryDelay: 1000 });
   console.log('data', products)
   return (
     <>
