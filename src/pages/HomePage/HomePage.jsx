@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import TypeProduct from '../../components/TypeProduct/TypeProduct'
 import { WrapperButtonMore, WrapperProducts, WrapperTypeProduct } from './style'
 import banner1 from '../../assets/images/banner1.jpg'
@@ -8,16 +8,40 @@ import SliderComponent from '../../components/SliderComponent/SliderComponent'
 import CardComponent from '../../components/CardComponent/CardComponent'
 import { useQuery } from '@tanstack/react-query'
 import * as ProductService from '../../services/ProductService'
+import { useSelector } from 'react-redux'
 
 const HomePage = () => {
+  const searchProduct = useSelector((state) => state?.product?.search)
+  const refSearch = useRef()
+  const [stateProducts, setStateProducts] = useState([])
   const arr = ['Loa', 'Dia nhac', 'Day']
-  const fetchAllProduct = async () => {
-    const res = await ProductService.getAllProduct()
-    console.log('res', res)
-    return res
+  const fetchAllProduct = async (search) => {
+    //if(search.length > 0) {
+    const res = await ProductService.getAllProduct(search)
+    if(search?.length > 0){
+      setStateProducts(res?.data)
+    }else{
+      return res
+    }
   }
-  const { isLoading, data: products } = useQuery(['product'], { queryFn: fetchAllProduct, retry: 3, retryDelay: 1000 });
-  console.log('data', products)
+
+  useEffect(() => {
+    if (refSearch.current){
+      fetchAllProduct(searchProduct)
+    }
+    refSearch.current = true
+  },[searchProduct])
+
+  const { isLoading, data: products } = useQuery(['products'], { queryFn: fetchAllProduct, retry: 3, retryDelay: 1000 });
+
+  useEffect(() => {
+    console.log('products', products)
+    if (products?.data?.length > 0){
+      setStateProducts(products?.data)
+    }
+  },[products])
+
+
   return (
     <>
       <div style={{width: '1270px', margin:'0 auto'}}>  
@@ -33,7 +57,8 @@ const HomePage = () => {
         <div id='container' style={{backgroundColor: '#efefef', margin: '0 auto', height: '1000px', width: '100%'}}>
           <SliderComponent arrImages = {[banner1, banner2, banner3]}/>
           <WrapperProducts>
-            {products?.data?.map((product) => {
+            {stateProducts?.map((product) => {
+              console.log('product', product)
                 return (
                   <CardComponent 
                     key={product._id} 
