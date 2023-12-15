@@ -321,9 +321,10 @@ const AdminUser = () => {
     }
     setStateUserOnes({
       ...stateUserOnes,
-      image: file.preview
+      avatar: file.preview
     })
   }
+
   const onUpdateUser = () => {
     mutationUpdate.mutate({ id: rowSelected, token: user?.access_token, ...stateUserOnes }, {
       onSettled: () => {
