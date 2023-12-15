@@ -13,6 +13,7 @@ import * as UserService from '../../services/UserService'
 import { resetUser } from '../../redux/slides/userSlide'
 //import Loading from '../LoadingComponent/Loading';
 import { useEffect } from 'react';
+import { searchProduct } from '../../redux/slides/productSlide';
 
 const HeaderComponent = ({ isHiddenSearch = false, isHiddenCart = false }) => {
   const navigate = useNavigate()
@@ -20,11 +21,16 @@ const HeaderComponent = ({ isHiddenSearch = false, isHiddenCart = false }) => {
   const dispatch = useDispatch()
   const [userName, setUserName] = useState('')
   const [userAvatar, setUserAvatar] = useState('')
+  const [searc, setSearch] = useState('')
   //const [loading, setLoading] = useState(false);
   const handleNavigateLogin = () => {
     navigate('/sign-in')
   } 
-  console.log('user', user)
+
+  const onSearch = (e) => {
+    setSearch(e.target.value)
+    dispatch(searchProduct(e.target.value))
+  }
 
 
   const handleLogout = async () => {
@@ -50,6 +56,7 @@ const HeaderComponent = ({ isHiddenSearch = false, isHiddenCart = false }) => {
       <WrapperContentPopup onClick={handleLogout}>Đăng xuất</WrapperContentPopup>
     </div>
   );
+  
   return (
     <div>
       <WrapperHeader style={{ justifyContent: isHiddenSearch && isHiddenSearch ? 'space-between' : 'unset' }}>
@@ -63,7 +70,7 @@ const HeaderComponent = ({ isHiddenSearch = false, isHiddenCart = false }) => {
               bordered={false}
               textButton="Tìm kiếm"
               placeholder="input search text"
-            // onSearch={onSearch}
+              onChange={onSearch}
             />
           </Col>
         )}
