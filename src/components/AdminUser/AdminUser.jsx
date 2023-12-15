@@ -1,5 +1,4 @@
 import { Button, Form, Space } from 'antd'
-import React from 'react'
 import { WrapperHeader, WrapperUploadFile } from './style'
 import TableComponent from '../TableComponent/TableComponent'
 import InputComponent from '../InputComponent/InputComponent'
@@ -7,11 +6,9 @@ import DrawerComponent from '../DrawerComponent/DrawerComponent'
 import Loading from '../LoadingComponent/Loading'
 import ModalComponent from '../ModalComponent/ModalComponent'
 import { getBase64 } from '../../utils'
-import { useEffect } from 'react'
 import * as message from '../../components/Message/Message'
-import { useState } from 'react'
+import { React, useState, useRef, useEffect } from 'react'
 import { useSelector } from 'react-redux'
-import { useRef } from 'react'
 import { useMutationHooks } from '../../hooks/useMutationHook'
 import * as UserService from '../../services/UserService'
 import { useQuery } from '@tanstack/react-query'
@@ -25,17 +22,13 @@ const AdminUser = () => {
   const user = useSelector((state) => state?.user)
   const searchInput = useRef(null);
 
-  const [stateUser, setStateUser] = useState({
+  const [stateUserOnes, setStateUserOnes] = useState({
     name: '',
     email: '',
     phone: '',
     isAdmin: false,
-  })
-  const [stateUserOne, setStateUserOne] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    isAdmin: false,
+    avatar: '',
+    address: ''
   })
 
   const [form] = Form.useForm();
@@ -52,6 +45,25 @@ const AdminUser = () => {
     },
   )
 
+  const mutationDeletedMany = useMutationHooks(
+    (data) => {
+      const { token, ...ids
+      } = data
+      const res = UserService.deleteManyUser(
+        ids,
+        token)
+      return res
+    },
+  )
+
+  const handleDelteManyUsers = (ids) => {
+    mutationDeletedMany.mutate({ ids: ids, token: user?.access_token }, {
+      onSettled: () => {
+        queryUser.refetch()
+      }
+    })
+  }
+
   const mutationDeleted = useMutationHooks(
     (data) => {
       const { id,
@@ -66,40 +78,42 @@ const AdminUser = () => {
 
   const getAllUsers = async () => {
     const res = await UserService.getAllUser()
-    console.log('res', res)
     return res
   }
 
-  const fetchGetOneUser = async (rowSelected) => {
+  const fetchGetOnesUser = async (rowSelected) => {
     const res = await UserService.getOneUser(rowSelected)
     if (res?.data) {
-      setStateUserOne({
+      setStateUserOnes({
         name: res?.data?.name,
         email: res?.data?.email,
         phone: res?.data?.phone,
         isAdmin: res?.data?.isAdmin,
+        address: res?.data?.address,
+        avatar: res.data?.avatar
       })
     }
     setIsLoadingUpdate(false)
   }
 
   useEffect(() => {
-    form.setFieldsValue(stateUserOne)
-  }, [form, stateUserOne])
+    form.setFieldsValue(stateUserOnes)
+  }, [form, stateUserOnes])
 
   useEffect(() => {
-    if (rowSelected) {
+    if (rowSelected && isOpenDrawer) {
       setIsLoadingUpdate(true)
-      fetchGetOneUser(rowSelected)
+      fetchGetOnesUser(rowSelected)
     }
-  }, [rowSelected])
+  }, [rowSelected, isOpenDrawer])
 
-  const handleOneProduct = () => {
+  const handleOnesUser = () => {
     setIsOpenDrawer(true)
   }
 
   const { data: dataUpdated, isLoading: isLoadingUpdated, isSuccess: isSuccessUpdated, isError: isErrorUpdated } = mutationUpdate
   const { data: dataDeleted, isLoading: isLoadingDeleted, isSuccess: isSuccessDelected, isError: isErrorDeleted } = mutationDeleted
+  const { data: dataDeletedMany, isLoading: isLoadingDeletedMany, isSuccess: isSuccessDelectedMany, isError: isErrorDeletedMany } = mutationDeletedMany
 
   const queryUser = useQuery({ queryKey: ['users'], queryFn: getAllUsers })
   const { isLoading: isLoadingUsers, data: users } = queryUser
@@ -107,7 +121,7 @@ const AdminUser = () => {
     return (
       <div>
         <DeleteOutlined style={{ color: 'red', fontSize: '30px', cursor: 'pointer' }} onClick={() => setIsModalOpenDelete(true)} />
-        <EditOutlined style={{ color: 'orange', fontSize: '30px', cursor: 'pointer' }} onClick={handleOneProduct} />
+        <EditOutlined style={{ color: 'orange', fontSize: '30px', cursor: 'pointer' }} onClick={handleOnesUser} />
       </div>
     )
   }
@@ -209,6 +223,12 @@ const AdminUser = () => {
       ...getColumnSearchProps('email')
     },
     {
+      title: 'Address',
+      dataIndex: 'address',
+      sorter: (a, b) => a.address.length - b.address.length,
+      ...getColumnSearchProps('address')
+    },
+    {
       title: 'Admin',
       dataIndex: 'isAdmin',
       filters: [
@@ -239,6 +259,14 @@ const AdminUser = () => {
   })
 
   useEffect(() => {
+    if (isSuccessDelectedMany && dataDeletedMany?.status === 'OK') {
+      message.success()
+    } else if (isErrorDeletedMany) {
+      message.error()
+    }
+  }, [isSuccessDelectedMany])
+
+  useEffect(() => {
     if (isSuccessDelected && dataDeleted?.status === 'OK') {
       message.success()
       handleCancelDelete()
@@ -249,7 +277,7 @@ const AdminUser = () => {
 
   const handleCloseDrawer = () => {
     setIsOpenDrawer(false);
-    setStateUserOne({
+    setStateUserOnes({
       name: '',
       email: '',
       phone: '',
@@ -279,36 +307,25 @@ const AdminUser = () => {
     })
   }
 
-  const handleOnchangeOne = (e) => {
-    setStateUserOne({
-      ...stateUserOne,
+  const handleOnchangeOnes = (e) => {
+    setStateUserOnes({
+      ...stateUserOnes,
       [e.target.name]: e.target.value
     })
   }
 
-  const handleOnchangeAvatar = async ({ fileList }) => {
+  const handleOnchangeAvatarOnes = async ({ fileList }) => {
     const file = fileList[0]
     if (!file.url && !file.preview) {
       file.preview = await getBase64(file.originFileObj);
     }
-    setStateUser({
-      ...stateUser,
-      image: file.preview
-    })
-  }
-
-  const handleOnchangeAvatarOne = async ({ fileList }) => {
-    const file = fileList[0]
-    if (!file.url && !file.preview) {
-      file.preview = await getBase64(file.originFileObj);
-    }
-    setStateUserOne({
-      ...stateUserOne,
+    setStateUserOnes({
+      ...stateUserOnes,
       image: file.preview
     })
   }
   const onUpdateUser = () => {
-    mutationUpdate.mutate({ id: rowSelected, token: user?.access_token, ...stateUserOne }, {
+    mutationUpdate.mutate({ id: rowSelected, token: user?.access_token, ...stateUserOnes }, {
       onSettled: () => {
         queryUser.refetch()
       }
@@ -318,7 +335,7 @@ const AdminUser = () => {
     <div>
       <WrapperHeader>Quản lý người dùng</WrapperHeader>
       <div style={{ marginTop: '20px' }}>
-        <TableComponent columns={columns} isLoading={isLoadingUsers} data={dataTable} onRow={(record, rowIndex) => {
+        <TableComponent handleDelteMany={handleDelteManyUsers} columns={columns} isLoading={isLoadingUsers} data={dataTable} onRow={(record, rowIndex) => {
           return {
             onClick: event => {
               setRowSelected(record._id)
@@ -342,7 +359,7 @@ const AdminUser = () => {
               name="name"
               rules={[{ required: true, message: 'Please input your name!' }]}
             >
-              <InputComponent value={stateUserOne['name']} onChange={handleOnchangeOne} name="name" />
+              <InputComponent value={stateUserOnes['name']} onChange={handleOnchangeOnes} name="name" />
             </Form.Item>
 
             <Form.Item
@@ -350,25 +367,34 @@ const AdminUser = () => {
               name="email"
               rules={[{ required: true, message: 'Please input your email!' }]}
             >
-              <InputComponent value={stateUserOne['email']} onChange={handleOnchangeOne} name="email" />
+              <InputComponent value={stateUserOnes['email']} onChange={handleOnchangeOnes} name="email" />
             </Form.Item>
+
             <Form.Item
               label="Phone"
               name="phone"
               rules={[{ required: true, message: 'Please input your count phone!' }]}
             >
-              <InputComponent value={stateUserOne.phone} onChange={handleOnchangeOne} name="phone" />
+              <InputComponent value={stateUserOnes.phone} onChange={handleOnchangeOnes} name="phone" />
+            </Form.Item>
+            
+            <Form.Item
+              label="Adress"
+              name="address"
+              rules={[{ required: true, message: 'Please input your  address!' }]}
+            >
+              <InputComponent value={stateUserOnes.address} onChange={handleOnchangeOnes} name="address" />
             </Form.Item>
 
-            {/* <Form.Item
-              label="Image"
-              name="image"
+            <Form.Item
+              label="Avatar"
+              name="avatar"
               rules={[{ required: true, message: 'Please input your count image!' }]}
             >
-              <WrapperUploadFile onChange={handleOnchangeAvatarOne} maxCount={1}>
+              <WrapperUploadFile onChange={handleOnchangeAvatarOnes} maxCount={1}>
                 <Button >Select File</Button>
-                {stateProductOne?.image && (
-                  <img src={stateProductOne?.image} style={{
+                {stateUserOnes?.avatar && (
+                  <img src={stateUserOnes?.avatar} style={{
                     height: '60px',
                     width: '60px',
                     borderRadius: '50%',
@@ -377,7 +403,7 @@ const AdminUser = () => {
                   }} alt="avatar" />
                 )}
               </WrapperUploadFile>
-            </Form.Item> */}
+            </Form.Item>
             <Form.Item wrapperCol={{ offset: 20, span: 16 }}>
               <Button type="primary" htmlType="submit">
                 Apply

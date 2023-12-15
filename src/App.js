@@ -16,7 +16,7 @@ function App() {
   const user = useSelector((state) => state.user)
 
   useEffect(() => {
-    setIsLoading(true)
+    //setIsLoading(true)
     const { storageData, decoded } = handleDecoded()
     if (decoded?.id) {
       handleGetDetailsUser(decoded?.id, storageData)
