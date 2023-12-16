@@ -10,9 +10,13 @@ import ButtonInputSearch from '../ButtonInputSearch/ButtonInputSearch';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import * as UserService from '../../services/UserService'
-import { resetUser } from '../../redux/slides/userSlide'
+import { resetUser, updateUser } from '../../redux/slides/userSlide'
 //import Loading from '../LoadingComponent/Loading';
 import { useEffect } from 'react';
+<<<<<<< HEAD
+=======
+import { Token } from 'tedious/lib/token/token';
+>>>>>>> 50250792de628ad99f16fb0485365c0ec4b8365c
 import { searchProduct } from '../../redux/slides/productSlide';
 
 const HeaderComponent = ({ isHiddenSearch = false, isHiddenCart = false }) => {
@@ -24,6 +28,7 @@ const HeaderComponent = ({ isHiddenSearch = false, isHiddenCart = false }) => {
   const [searc, setSearch] = useState('')
   const order = useSelector((state) => state.order)
   //const [loading, setLoading] = useState(false);
+  const [searc, setSearch] = useState('')
   const handleNavigateLogin = () => {
     navigate('/sign-in')
   } 
@@ -57,7 +62,16 @@ const HeaderComponent = ({ isHiddenSearch = false, isHiddenCart = false }) => {
       <WrapperContentPopup onClick={handleLogout}>Đăng xuất</WrapperContentPopup>
     </div>
   );
+<<<<<<< HEAD
   
+=======
+
+const onSearch = (e) =>{
+  setSearch(e.target.value)
+  dispatch(searchProduct(e.target.value))
+}
+
+>>>>>>> 50250792de628ad99f16fb0485365c0ec4b8365c
   return (
     <div>
       <WrapperHeader style={{ justifyContent: isHiddenSearch && isHiddenSearch ? 'space-between' : 'unset' }}>

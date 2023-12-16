@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { combineReducers, configureStore } from '@reduxjs/toolkit'
+=======
+import { configureStore } from '@reduxjs/toolkit'
+>>>>>>> 50250792de628ad99f16fb0485365c0ec4b8365c
 import productReducer from './slides/productSlide'
 import userReducer from './slides/userSlide'
 import orderReducer from './slides/orderSlide'
@@ -31,6 +35,7 @@ const persistedReducer = persistReducer(persistConfig, rootReducer)
 
 
 export const store = configureStore({
+<<<<<<< HEAD
   reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -41,3 +46,10 @@ export const store = configureStore({
 })
 
 export let persistor = persistStore(store)
+=======
+  reducer: {
+    product: productReducer,
+    user: userReducer
+  },
+})
+>>>>>>> 50250792de628ad99f16fb0485365c0ec4b8365c
