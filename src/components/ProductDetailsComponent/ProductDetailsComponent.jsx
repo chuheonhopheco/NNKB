@@ -1,18 +1,25 @@
 import { Col, Image, Row, Rate } from 'antd'
 import React from 'react'
 import imageProductSmall from '../../assets/images/HinhSP/dia2.2.jpg'
-import { WrapperAddressProduct, WrapperBtnQuantityProduct, WrapperInputNumber, WrapperPriceProduct, WrapperQuantityProduct, WrapperStyleColImage, WrapperStyleNameProduct, WrapperStyleTextSell, WrapperTextProduct} from './style'
+import { WrapperAddressProduct, WrapperBtnQuantityProduct, WrapperInputNumber, WrapperPriceProduct, WrapperPriceTextProduct, WrapperQuantityProduct, WrapperStyleColImage, WrapperStyleNameProduct, WrapperStyleTextSell, WrapperTextProduct} from './style'
 import ButtonComponent from '../ButtonComponent/ButtonComponent'
 import { PlusOutlined, MinusOutlined } from '@ant-design/icons'
 import * as ProductService from '../../services/ProductService'
 import { useQuery } from '@tanstack/react-query'
 import Loading from '../LoadingComponent/Loading'
 import { useState } from 'react'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import { Navigate, useLocation } from 'react-router-dom'
+import { addOrderProduct } from '../../redux/slides/orderSlide'
+import { convertPrice } from '../../utils'
 
 const ProductDetailsComponent = ({ idProduct }) => {
     const [numProduct, setNumProduct] = useState(1)
     const user = useSelector((state) => state.user)
+    const order = useSelector((state) => state.order)
+    const [errorLimitOrder,setErrorLimitOrder] = useState(false)
+    const location = useLocation()
+    const dispatch = useDispatch()
     const onChange = (value) => {
         setNumProduct(Number(value))
     }
@@ -33,7 +40,29 @@ const ProductDetailsComponent = ({ idProduct }) => {
     }
 
     const { isLoading, data: productDetails } = useQuery(['product-details', idProduct], fetchGetOneProduct, { enabled: !!idProduct })
-  return (
+    const handleAddOrderProduct = () => {
+        if(!user?.id) {
+            Navigate('/sign-in', {state: location?.pathname})
+        }else {
+            const orderRedux = order?.orderItems?.find((item) => item.product === productDetails?._id)
+            if((orderRedux?.amount + numProduct) <= orderRedux?.countInstock || (!orderRedux && productDetails?.countInStock > 0)) {
+                dispatch(addOrderProduct({
+                    orderItem: {
+                        name: productDetails?.name,
+                        amount: numProduct,
+                        image: productDetails?.image,
+                        price: productDetails?.price,
+                        product: productDetails?._id,
+                        discount: productDetails?.discount,
+                        countInstock: productDetails?.countInStock
+                    }
+                }))
+            } else {
+                setErrorLimitOrder(true)
+            }
+        }
+    }
+    return (
       <Loading isLoading={isLoading}>
           <Row style={{ padding: '16px', background: '#fff', borderRadius: '4px' }}>
               <Col span={10} style={{ borderRight: '1px solid #e5e5e5', paddingRight: '8px' }}>
@@ -66,8 +95,8 @@ const ProductDetailsComponent = ({ idProduct }) => {
                       <WrapperStyleTextSell> | Da ban 1000+</WrapperStyleTextSell>
                   </div>
                   <WrapperPriceProduct>
-                      <WrapperTextProduct>{productDetails?.price}</WrapperTextProduct>
-                  </WrapperPriceProduct>
+                        <WrapperPriceTextProduct>{convertPrice(productDetails?.price)}</WrapperPriceTextProduct>
+                     </WrapperPriceProduct>       
                   <WrapperAddressProduct>
                       <span>Giao đến </span>
                       <span className='address'>{user?.address}</span> -
@@ -95,6 +124,7 @@ const ProductDetailsComponent = ({ idProduct }) => {
                               border: 'none',
                               borderRadius: '4px'
                           }}
+                          onClick={handleAddOrderProduct}
                           textButton={'Chọn mua'}
                           styleTextButton={{ color: '#fff', fontSize: '15px', fontWeight: '700' }}
                       ></ButtonComponent>

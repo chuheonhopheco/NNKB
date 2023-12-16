@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import SliderComponent from '../../components/SliderComponent/SliderComponent'
 import TypeProduct from '../../components/TypeProduct/TypeProduct'
 import { WrapperButtonMore, WrapperProducts, WrapperTypeProduct } from './style'
@@ -19,6 +19,7 @@ const HomePage = () => {
   const [loading, setLoading] = useState(false)
   const [limit, setLimit] = useState(6)
   // const [page, setLimit] = useState(6)
+  const [typeProducts, setTypeProducts] = useState([])
   const arr = ['Dia nhac', 'Loa', 'Mam dia', 'Day']
 
   const fetchAllProduct = async (context) => {
@@ -30,14 +31,24 @@ const HomePage = () => {
     return res
   }
 
+  const fetchAllTypeProduct = async () => {
+    const res = await ProductService.getAllTypeProduct()
+    if(res?.status === 'OK') {
+      setTypeProducts(res?.data)
+    }
+  }
+
   const { isLoading, data: products, isPreviousData } = useQuery(['products', limit, searchDebounce], fetchAllProduct, { retry: 3, retryDelay: 1000, keepPreviousData: true })
 
-  console.log('isPreviousData', products)
+  useEffect(() => {
+    fetchAllTypeProduct()
+  }, [])
+
   return (
     <Loading isLoading={isLoading || loading}>
       <div style={{ width: '1270px', margin: '0 auto' }}>
         <WrapperTypeProduct>
-          {arr.map((item) => {
+          {typeProducts.map((item) => {
             return (
               <TypeProduct name={item} key={item} />
             )
@@ -45,7 +56,7 @@ const HomePage = () => {
         </WrapperTypeProduct>
       </div>
       <div className='body' style={{ width: '100%', backgroundColor: '#efefef', }}>
-        <div id="container" style={{ height: '1000px', width: '1270px', margin: '0 auto' }}>
+        <div id="container" style={{ height: '1500px', width: '1270px', margin: '0 auto' }}>
           <SliderComponent arrImages={[slider1, slider2, slider3]} />
           <WrapperProducts>
                 {products?.data?.map((product) => {

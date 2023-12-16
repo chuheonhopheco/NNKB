@@ -1,11 +1,11 @@
-import { Button, Form, Space } from 'antd'
+import { Button, Form, Select, Space } from 'antd'
 import { PlusOutlined, DeleteOutlined, EditOutlined, SearchOutlined } from '@ant-design/icons'
 import React, { useRef } from 'react'
 import { WrapperHeader, WrapperUploadFile } from './style'
 import TableComponent from '../TableComponent/TableComponent'
 import { useState } from 'react'
 import InputComponent from '../InputComponent/InputComponent'
-import { getBase64 } from '../../utils'
+import { getBase64, renderOptions } from '../../utils'
 import * as ProductService from '../../services/ProductService'
 import { useMutationHooks } from '../../hooks/useMutationHook'
 import Loading from '../../components/LoadingComponent/Loading'
@@ -24,27 +24,22 @@ const AdminProduct = () => {
   const [isModalOpenDelete, setIsModalOpenDelete] = useState(false)
   const user = useSelector((state) => state?.user)
   const searchInput = useRef(null);
-
-  const [stateProduct, setStateProduct] = useState({
+  const inittial = () => ({
     name: '',
     price: '',
     description: '',
     rating: '',
     image: '',
     type: '',
-    countInStock: ''
+    countInStock: '',
+    newType: '',
+    discount: '',
   })
-  const [stateProductDetails, setStateProductDetails] = useState({
-    name: '',
-    price: '',
-    description: '',
-    rating: '',
-    image: '',
-    type: '',
-    countInStock: ''
-  })
+  const [stateProduct, setStateProduct] = useState(inittial())
+  const [stateProductDetails, setStateProductDetails] = useState(inittial())
 
   const [form] = Form.useForm();
+
   const mutation = useMutationHooks(
     (data) => {
       const { name,
@@ -53,7 +48,7 @@ const AdminProduct = () => {
         rating,
         image,
         type,
-        countInStock } = data
+        countInStock,discount } = data
       const res = ProductService.createProduct({
         name,
         price,
@@ -61,7 +56,8 @@ const AdminProduct = () => {
         rating,
         image,
         type,
-        countInStock
+        countInStock,
+        discount
       })
       return res
     }
@@ -107,7 +103,7 @@ const AdminProduct = () => {
     return res
   }
 
-  const fetchGetOneProduct = async (rowSelected) => {
+  const fetchGetDetailsProduct = async (rowSelected) => {
     const res = await ProductService.getOneProduct(rowSelected)
     if (res?.data) {
       setStateProductDetails({
@@ -117,20 +113,25 @@ const AdminProduct = () => {
         rating: res?.data?.rating,
         image: res?.data?.image,
         type: res?.data?.type,
-        countInStock: res?.data?.countInStock
+        countInStock: res?.data?.countInStock,
+        discount: res?.data?.discount
       })
     }
     setIsLoadingUpdate(false)
   }
 
   useEffect(() => {
-    form.setFieldsValue(stateProductDetails)
-  }, [form, stateProductDetails])
+    if(!isModalOpen) {
+      form.setFieldsValue(stateProductDetails)
+    }else {
+      form.setFieldsValue(inittial())
+    }
+  }, [form, stateProductDetails, isModalOpen])
 
   useEffect(() => {
     if (rowSelected && isOpenDrawer) {
       setIsLoadingUpdate(true)
-      fetchGetOneProduct(rowSelected)
+      fetchGetDetailsProduct(rowSelected)
     }
   }, [rowSelected, isOpenDrawer])
 
@@ -146,12 +147,19 @@ const AdminProduct = () => {
     })
   }
 
+  const fetchAllTypeProduct = async () => {
+    const res = await ProductService.getAllTypeProduct()
+    return res
+  }
+
   const { data, isLoading, isSuccess, isError } = mutation
   const { data: dataUpdated, isLoading: isLoadingUpdated, isSuccess: isSuccessUpdated, isError: isErrorUpdated } = mutationUpdate
   const { data: dataDeleted, isLoading: isLoadingDeleted, isSuccess: isSuccessDelected, isError: isErrorDeleted } = mutationDeleted
   const { data: dataDeletedMany, isLoading: isLoadingDeletedMany, isSuccess: isSuccessDelectedMany, isError: isErrorDeletedMany } = mutationDeletedMany
 
+
   const queryProduct = useQuery({ queryKey: ['products'], queryFn: getAllProducts })
+  const typeProduct = useQuery({ queryKey: ['type-product'], queryFn: fetchAllTypeProduct })
   const { isLoading: isLoadingProducts, data: products } = queryProduct
   const renderAction = () => {
     return (
@@ -161,6 +169,7 @@ const AdminProduct = () => {
       </div>
     )
   }
+
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
@@ -245,6 +254,7 @@ const AdminProduct = () => {
     //   ),
   });
 
+
   const columns = [
     {
       title: 'Name',
@@ -267,10 +277,10 @@ const AdminProduct = () => {
         }
       ],
       onFilter: (value, record) => {
-        if(value === '>=') {
-          return record.price  >= 50
+        if (value === '>=') {
+          return record.price >= 50
         }
-        return record.price  <= 50
+        return record.price <= 50
       },
     },
     {
@@ -288,10 +298,10 @@ const AdminProduct = () => {
         }
       ],
       onFilter: (value, record) => {
-        if(value === '>=') {
-          return Number(record.rating)  >= 3
+        if (value === '>=') {
+          return Number(record.rating) >= 3
         }
-        return Number(record.rating)  <= 3
+        return Number(record.rating) <= 3
       },
     },
     {
@@ -361,6 +371,7 @@ const AdminProduct = () => {
     setIsModalOpenDelete(false)
   }
 
+
   const handleDeleteProduct = () => {
     mutationDeleted.mutate({ id: rowSelected, token: user?.access_token }, {
       onSettled: () => {
@@ -378,13 +389,24 @@ const AdminProduct = () => {
       rating: '',
       image: '',
       type: '',
-      countInStock: ''
+      countInStock: '',
+      discount: '',
     })
     form.resetFields()
   };
 
   const onFinish = () => {
-    mutation.mutate(stateProduct, {
+    const params = {
+      name: stateProduct.name,
+      price: stateProduct.price,
+      description: stateProduct.description,
+      rating: stateProduct.rating,
+      image: stateProduct.image,
+      type: stateProduct.type === 'add_type' ? stateProduct.newType : stateProduct.type,
+      countInStock: stateProduct.countInStock,
+      discount: stateProduct.discount
+    }
+    mutation.mutate(params, {
       onSettled: () => {
         queryProduct.refetch()
       }
@@ -434,6 +456,12 @@ const AdminProduct = () => {
     })
   }
 
+  const handleChangeSelect = (value) => {
+      setStateProduct({
+        ...stateProduct,
+        type: value
+      })
+  }
 
   return (
     <div>
@@ -474,8 +502,24 @@ const AdminProduct = () => {
               name="type"
               rules={[{ required: true, message: 'Please input your type!' }]}
             >
-              <InputComponent value={stateProduct.type} onChange={handleOnchange} name="type" />
+              <Select
+                name="type"
+                // defaultValue="lucy"
+                // style={{ width: 120 }}
+                value={stateProduct.type}
+                onChange={handleChangeSelect}
+                options={renderOptions(typeProduct?.data?.data)}
+                />
             </Form.Item>
+            {stateProduct.type === 'add_type' && (
+              <Form.Item
+                label='New type'
+                name="newType"
+                rules={[{ required: true, message: 'Please input your type!' }]}
+              >
+                <InputComponent value={stateProduct.newType} onChange={handleOnchange} name="newType" />
+              </Form.Item>
+            )}
             <Form.Item
               label="Count inStock"
               name="countInStock"
@@ -503,6 +547,13 @@ const AdminProduct = () => {
               rules={[{ required: true, message: 'Please input your count rating!' }]}
             >
               <InputComponent value={stateProduct.rating} onChange={handleOnchange} name="rating" />
+            </Form.Item>
+            <Form.Item
+              label="Discount"
+              name="discount"
+              rules={[{ required: true, message: 'Please input your discount of product!' }]}
+            >
+              <InputComponent value={stateProduct.discount} onChange={handleOnchange} name="discount" />
             </Form.Item>
             <Form.Item
               label="Image"
@@ -585,6 +636,13 @@ const AdminProduct = () => {
               <InputComponent value={stateProductDetails.rating} onChange={handleOnchangeDetails} name="rating" />
             </Form.Item>
             <Form.Item
+              label="Discount"
+              name="discount"
+              rules={[{ required: true, message: 'Please input your discount of product!' }]}
+            >
+              <InputComponent value={stateProductDetails.discount} onChange={handleOnchangeDetails} name="discount" />
+            </Form.Item>
+            <Form.Item
               label="Image"
               name="image"
               rules={[{ required: true, message: 'Please input your count image!' }]}
@@ -618,4 +676,5 @@ const AdminProduct = () => {
     </div>
   )
 }
+
 export default AdminProduct

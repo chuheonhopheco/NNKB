@@ -2,8 +2,8 @@ import { Col, Image, InputNumber } from "antd";
 import styled from "styled-components";
 
 export const WrapperStyleImageSmall = styled(Image)`
-    height: 70px;
-    width: 70px;
+    height: 64px;
+    width: 64px;
 `
 
 export const WrapperStyleColImage = styled(Col)`
@@ -20,66 +20,59 @@ export const WrapperStyleNameProduct = styled.h1`
 `
 
 export const WrapperStyleTextSell = styled.span`
-    color: rgb(120, 120, 120);
     font-size: 15px;
     line-height: 24px;
+    color: rgb(120, 120, 120)
 `
 
 export const WrapperPriceProduct = styled.div`
-    color: rgb(250, 250, 250);
+    background: rgb(250, 250, 250);
     border-radius: 4px;
 `
 
-export const WrapperTextProduct = styled.h1`
+export const WrapperPriceTextProduct = styled.h1`
     font-size: 32px;
     line-height: 40px;
-    margin-left: 8px;
+    margin-right: 8px;
     font-weight: 500;
-    color: rgb(0, 0, 0);
     padding: 10px;
     margin-top: 10px;
-    background-color: #f2f2f2;
 `
 
 export const WrapperAddressProduct = styled.div`
-    span.address{
+    span.address {
         text-decoration: underline;
         font-size: 15px;
         line-height: 24px;
         font-weight: 500;
         white-space: nowrap;
         overflow: hidden;
-        text-overflow: ellipsis;
+        text-overflow: ellipsisl
     };
-    span.change-address{
+    span.change-address {
+        color: rgb(11, 116, 229);
         font-size: 16px;
         line-height: 24px;
         font-weight: 500;
-        color: rgba(140,40,48,255);
     }
 `
 
 export const WrapperQuantityProduct = styled.div`
     display: flex;
     gap: 4px;
-    align-item: center;
-    width: 100px;
+    align-items: center;
+    width: 120px;
+    border: 1px solid #ccc;
     border-radius: 4px;
-    border: 1px solid #ccc
-`
-
-export const WrapperBtnQuantityProduct = styled.span`
-
 `
 
 export const WrapperInputNumber = styled(InputNumber)`
-    &.ant-input-number.ant-input-number-sm{
+    &.ant-input-number.ant-input-number-sm {
         width: 40px;
         border-top: none;
         border-bottom: none;
-        padding-top: 5px;
-        &.ant-input-number-handler-wrap{
+        .ant-input-number-handler-wrap {
             display: none !important;
         }
-    }
+    };
 `
